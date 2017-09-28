@@ -162,7 +162,19 @@ if (isset($_GET['service'])) {
     ));
 
     $ticketStore->addTicket($serviceTicket);
+    try {
+        $msgState = [
+            'service' => $_GET['service'],
+            'host' => $_SERVER['SERVER_NAME'],
+            'ip' =>  $_SERVER['REMOTE_ADDR'],
+            'user' => $mappedAttributes['user'],
+            'ticketPrefix' => substr($serviceTicket['id'],0,8),
+        ];
+        SimpleSAML_Logger::info('cas login: ' . json_encode($msgState, JSON_UNESCAPED_SLASHES));
 
+    } catch (Exception $e) {
+        //eat it so we don't interupt the flow
+    }
     $parameters['ticket'] = $serviceTicket['id'];
 
     if ($redirect) {
