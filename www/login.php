@@ -148,35 +148,15 @@ if (array_key_exists('language', $_GET)) {
 }
 
 if (isset($_GET['service'])) {
-    $attributes = $as->getAttributes();
+    $attributeExtractor = new \sspmod_casserver_Cas_AttributeExtractor();
+    $mappedAttributes = $attributeExtractor->extractUserAndAttributes($as->getAttributes(), $casconfig);
 
-    $casUsernameAttribute = $casconfig->getValue('attrname', 'eduPersonPrincipalName');
-
-    $userName = $attributes[$casUsernameAttribute][0];
-
-    if ($casconfig->getValue('attributes', true)) {
-        $attributesToTransfer = $casconfig->getValue('attributes_to_transfer', array());
-
-        if (sizeof($attributesToTransfer) > 0) {
-            $casAttributes = array();
-
-            foreach ($attributesToTransfer as $key) {
-                if (array_key_exists($key, $attributes)) {
-                    $casAttributes[$key] = $attributes[$key];
-                }
-            }
-        } else {
-            $casAttributes = $attributes;
-        }
-    } else {
-        $casAttributes = array();
-    }
 
     $serviceTicket = $ticketFactory->createServiceTicket(array(
         'service' => $_GET['service'],
         'forceAuthn' => $forceAuthn,
-        'userName' => $userName,
-        'attributes' => $casAttributes,
+        'userName' => $mappedAttributes['user'],
+        'attributes' => $mappedAttributes['attributes'],
         'proxies' => array(),
         'sessionId' => $sessionTicket['id']
     ));
