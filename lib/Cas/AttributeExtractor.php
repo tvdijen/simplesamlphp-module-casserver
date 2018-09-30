@@ -75,7 +75,7 @@ class sspmod_casserver_Cas_AttributeExtractor
             'Attributes' => $attributes
         );
         foreach ($filters as $config) {
-            $className = SimpleSAML_Module::resolveClass(
+            $className = SimpleSAML\Module::resolveClass(
                 $config['class'],
                 'Auth_Process',
                 'SimpleSAML_Auth_ProcessingFilter'

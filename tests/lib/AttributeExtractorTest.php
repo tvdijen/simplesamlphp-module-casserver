@@ -2,7 +2,7 @@
 
 namespace Simplesamlphp\Casserver;
 
-class AttributeExtractorTest extends \PHPUnit_Framework_TestCase
+class AttributeExtractorTest extends \PHPUnit\Framework\TestCase
 {
 
     /**

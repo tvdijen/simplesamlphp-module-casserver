@@ -20,7 +20,7 @@ use GuzzleHttp\Cookie\CookieJar;
  *
  * @package Simplesamlphp\Casserver
  */
-class LoginIntegrationTest extends \PHPUnit_Framework_TestCase
+class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
 {
     private static $LINK_URL = 'http://localhost:8732/module.php/casserver/login.php';
 

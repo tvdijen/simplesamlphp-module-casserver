@@ -10,7 +10,7 @@ namespace Simplesamlphp\Casserver;
 
 require_once dirname(dirname(__DIR__)) . '/www/utility/urlUtils.php';
 
-class UtilsTest extends \PHPUnit_Framework_TestCase
+class UtilsTest extends \PHPUnit\Framework\TestCase
 {
 
     /**
