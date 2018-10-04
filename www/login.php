@@ -174,7 +174,7 @@ if (isset($_GET['service'])) {
             'user' => $mappedAttributes['user'],
             'ticketPrefix' => substr($serviceTicket['id'],0,8),
         ];
-        SimpleSAML_Logger::info('cas login: ' . json_encode($msgState, JSON_UNESCAPED_SLASHES));
+        SimpleSAML\Logger::info('cas login: ' . json_encode($msgState, JSON_UNESCAPED_SLASHES));
 
     } catch (Exception $e) {
         //eat it so we don't interupt the flow
