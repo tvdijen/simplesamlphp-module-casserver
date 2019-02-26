@@ -43,7 +43,7 @@ $config = array(
     'attributes' => true, // enable transfer of attributes, defaults to false
     'attributes_to_transfer' => array('eduPersonPrincipalName'), // set of attributes to transfer, defaults to all
 
-    'base64attributes' => true, //base64 encode transferred attributes, defaults to false
+    'base64attributes' => false, //base64 encode transferred attributes, defaults to false
     'base64_attributes_indicator_attribute' => 'base64Attributes', /*add an attribute with the value of the base64attributes
                                                                      configuration parameter to the set of transferred attributes.
                                                                      Defaults to not adding an indicator attribute. */

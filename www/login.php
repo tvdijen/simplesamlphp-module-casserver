@@ -181,7 +181,17 @@ if (isset($_GET['service'])) {
     }
     $parameters['ticket'] = $serviceTicket['id'];
 
-    if ($redirect) {
+    if ($_GET['debugMode'] ?? 'false' == 'true') {
+        $method = 'serviceValidate';
+        // Fake some options for validateTicket
+        $_GET['ticket'] = $serviceTicket['id'];
+        // We want to capture the output from echo used in validateTicket
+        ob_start();
+        require_once 'utility/validateTicket.php';
+        $casResponse = ob_get_contents();
+        ob_end_clean();
+        echo '<pre>' . htmlspecialchars($casResponse) . '</pre>';
+    } elseif ($redirect) {
         SimpleSAML\Utils\HTTP::redirectTrustedURL(SimpleSAML\Utils\HTTP::addURLParameters($_GET['service'],
             $parameters));
     } else {

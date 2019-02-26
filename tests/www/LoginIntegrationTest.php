@@ -101,6 +101,37 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Test outputting user info instead of redirecting
+     */
+    public function testDebugOutput()
+    {
+        $service_url = 'http://host1.domain:1234/path1';
+        $client = new Client();
+        // Use cookies Jar to store auth session cookies
+        $jar = new CookieJar;
+        // Setup authenticated cookies
+        $this->authenticate($jar);
+        $response = $client->get(
+            self::$LINK_URL,
+            [
+                'query' => [
+                    'service' => $service_url,
+                    'debugMode' => 'true'
+                ],
+                'cookies' => $jar,
+                'allow_redirects' => false, // Disable redirects since the service url can't be redirected to
+            ]
+        );
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $this->assertContains(
+            '&lt;cas:eduPersonPrincipalName&gt;testuser@example.com&lt;/cas:eduPersonPrincipalName&gt;',
+            $response->getBody()->getContents(),
+            'Attributes should have been printed.'
+        );
+    }
+
+    /**
      * test a valid service URL with Post
      */
     public function testValidServiceUrlWithPost()
