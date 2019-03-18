@@ -82,9 +82,25 @@ class sspmod_casserver_Cas_Protocol_Cas20
 
             foreach ($this->attributes as $name => $values) {
                 foreach ($values as $value) {
-                    $casAttributes->appendChild(
-                        $this->generateCas20Attribute($xmlDocument, str_replace(':', '_', $name), $value)
-                    );
+                    /** TODO: Xml element names
+                     * Ref: https://www.w3.org/TR/REC-xml/#NT-NameChar
+                     * https://stackoverflow.com/q/2519845/54396
+                        * must only start with letter or underscore
+                     * cannot start with 'xml'
+                     * contain a ':' since those are for namespaces
+                     * cannot contains space
+                     * can only  contain letters, digits, hyphens, underscores, and periods
+                    */
+                    $attributeName = str_replace(':', '_', $name);
+
+                    try {
+                        $casAttributes->appendChild(
+                            $this->generateCas20Attribute($xmlDocument, $attributeName, $value)
+                        );
+                    } catch (DOMException $e) {
+                        SimpleSAML\Logger::warning("Dom exception creating attribute '$attributeName'. Continuing without atrribute'");
+                    }
+
                 }
             }
 
