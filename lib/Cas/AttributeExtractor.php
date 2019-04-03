@@ -80,6 +80,8 @@ class sspmod_casserver_Cas_AttributeExtractor
                 'Auth_Process',
                 'SimpleSAML_Auth_ProcessingFilter'
             );
+            // Unset the class so the authproc filter won't interpret it as an option
+            unset($config['class']);
             $filter = new $className($config, null);
             $filter->process($state);
         }
