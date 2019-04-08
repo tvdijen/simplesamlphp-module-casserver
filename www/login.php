@@ -106,6 +106,10 @@ if (!$as->isAuthenticated() || ($forceAuthn && $sessionRenewId != $requestRenewI
         $query['language'] = is_string($_GET['language']) ? $_GET['language'] : null;
     }
 
+    if (isset($_REQUEST['debugMode'])) {
+        $query['debugMode'] = $_REQUEST['debugMode'];
+    }
+
     $returnUrl = SimpleSAML\Utils\HTTP::getSelfURLNoQuery() . '?' . http_build_query($query);
 
     $params = array(
