@@ -15,10 +15,14 @@ $config = array(
                       'desktop' => array('https://idp3.domain:1234/saml2/idp/metadata.php',
                                          'https://idp4.domain:5678/saml2/idp/metadata.php')),
 
-    'legal_service_urls' => array( //Any service url string matching any of the following prefixes is accepted
+    'legal_service_urls' => [ //Any service url string matching any of the following prefixes is accepted
         'http://host1.domain:1234/path1',
         'https://host2.domain:5678/path2/path3',
-    ),
+        '|https://override.example.com/|' => [
+            'attrname' => 'uid',
+            'attributes_to_transfer' => ['cn'],
+        ]
+    ],
 
     'legal_target_service_urls' => array( //Any target service url string matching any of the following prefixes is accepted
         'http://host3.domain:4321/path4',

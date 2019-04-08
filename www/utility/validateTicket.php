@@ -1,49 +1,58 @@
 <?php
 /*
-*    simpleSAMLphp-casserver is a CAS 1.0 and 2.0 compliant CAS server in the form of a simpleSAMLphp module
-*
-*    Copyright (C) 2013  Bjorn R. Jensen
-*
-*    This library is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU Lesser General Public
-*    License as published by the Free Software Foundation; either
-*    version 2.1 of the License, or (at your option) any later version.
-*
-*    This library is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*    Lesser General Public License for more details.
-*
-*    You should have received a copy of the GNU Lesser General Public
-*    License along with this library; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*
-* Incoming parameters:
-*  service
-*  renew
-*  ticket
-*  pgtUrl
-*
-*/
+ *    simpleSAMLphp-casserver is a CAS 1.0 and 2.0 compliant CAS server in the form of a simpleSAMLphp module
+ *
+ *    Copyright (C) 2013  Bjorn R. Jensen
+ *
+ *    This library is free software; you can redistribute it and/or
+ *    modify it under the terms of the GNU Lesser General Public
+ *    License as published by the Free Software Foundation; either
+ *    version 2.1 of the License, or (at your option) any later version.
+ *
+ *    This library is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    Lesser General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Lesser General Public
+ *    License along with this library; if not, write to the Free Software
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Incoming parameters:
+ *  service
+ *  renew
+ *  ticket
+ *  pgtUrl
+ *
+ */
 
-require_once 'urlUtils.php';
+use sspmod_casserver_Cas_Protocol_Cas20 as Cas20;
+use sspmod_casserver_Cas_Ticket_TicketFactory as TicketFactory;
+use sspmod_casserver_Cas_Ticket_TicketStore as TicketStore;
+require_once('urlUtils.php');
 
 /* Load simpleSAMLphp, configuration and metadata */
 $casconfig = SimpleSAML_Configuration::getConfig('module_casserver.php');
 
 /* Instantiate protocol handler */
-$protocolClass = SimpleSAML\Module::resolveClass('casserver:Cas20', 'Cas_Protocol');
+$protocolClass = \SimpleSAML\Module::resolveClass('casserver:Cas20', 'Cas_Protocol');
+/** @var Cas20 $protocol */
+/** @psalm-suppress InvalidStringClass */
 $protocol = new $protocolClass($casconfig);
 
 if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
     $forceAuthn = isset($_GET['renew']) && $_GET['renew'];
 
     try {
-        $ticketStoreConfig = $casconfig->getValue('ticketstore', array('class' => 'casserver:FileSystemTicketStore'));
-        $ticketStoreClass = SimpleSAML\Module::resolveClass($ticketStoreConfig['class'], 'Cas_Ticket');
+        $ticketStoreConfig = $casconfig->getValue('ticketstore', ['class' => 'casserver:FileSystemTicketStore']);
+        $ticketStoreClass = \SimpleSAML\Module::resolveClass($ticketStoreConfig['class'], 'Cas_Ticket');
+        /** @var TicketStore $ticketStore */
+        /** @psalm-suppress InvalidStringClass */
         $ticketStore = new $ticketStoreClass($casconfig);
 
         $ticketFactoryClass = SimpleSAML\Module::resolveClass('casserver:TicketFactory', 'Cas_Ticket');
+        /** @var TicketFactory $ticketFactory */
+        /** @psalm-suppress InvalidStringClass */
         $ticketFactory = new $ticketFactoryClass($casconfig);
 
         $serviceTicket = $ticketStore->getTicket($_GET['ticket']);

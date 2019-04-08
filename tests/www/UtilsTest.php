@@ -8,6 +8,8 @@
 
 namespace Simplesamlphp\Casserver;
 
+use SimpleSAML\Module\casserver\Cas\ServiceValidator;
+
 require_once dirname(dirname(__DIR__)) . '/www/utility/urlUtils.php';
 
 class UtilsTest extends \PHPUnit\Framework\TestCase

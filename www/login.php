@@ -1,52 +1,65 @@
 <?php
 /*
-*    simpleSAMLphp-casserver is a CAS 1.0 and 2.0 compliant CAS server in the form of a simpleSAMLphp module
-*
-*    Copyright (C) 2013  Bjorn R. Jensen
-*
-*    This library is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU Lesser General Public
-*    License as published by the Free Software Foundation; either
-*    version 2.1 of the License, or (at your option) any later version.
-*
-*    This library is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*    Lesser General Public License for more details.
-*
-*    You should have received a copy of the GNU Lesser General Public
-*    License along with this library; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*
-* Incoming parameters:
-*  service
-*  renew
-*  gateway
-*  entityId
-*  scope
-*  language
-*/
+ *    simpleSAMLphp-casserver is a CAS 1.0 and 2.0 compliant CAS server in the form of a simpleSAMLphp module
+ *
+ *    Copyright (C) 2013  Bjorn R. Jensen
+ *
+ *    This library is free software; you can redistribute it and/or
+ *    modify it under the terms of the GNU Lesser General Public
+ *    License as published by the Free Software Foundation; either
+ *    version 2.1 of the License, or (at your option) any later version.
+ *
+ *    This library is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    Lesser General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Lesser General Public
+ *    License along with this library; if not, write to the Free Software
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Incoming parameters:
+ *  service
+ *  renew
+ *  gateway
+ *  entityId
+ *  scope
+ *  language
+ */
 
-require_once 'utility/urlUtils.php';
+use SimpleSAML\Module\casserver\Cas\ServiceValidator;
+use SimpleSAML\Locale\Language;
+use SimpleSAML\Logger;
+use SimpleSAML\Module;
+use SimpleSAML\Utils\HTTP;
+
+require_once('utility/urlUtils.php');
 
 $forceAuthn = isset($_GET['renew']) && $_GET['renew'];
 $isPassive = isset($_GET['gateway']) && $_GET['gateway'];
 // Determine if client wants us to post or redirect the response. Default is redirect.
 $redirect = !(isset($_GET['method']) && 'POST' === $_GET['method']);
 
+
 $casconfig = SimpleSAML_Configuration::getConfig('module_casserver.php');
+$serviceValidator = new ServiceValidator($casconfig);
 
-$legal_service_urls = $casconfig->getValue('legal_service_urls');
+if (isset($_GET['service'])) {
+    $serviceCasConfig = $serviceValidator->checkServiceURL(sanitize($_GET['service']));
+    if (isset($serviceCasConfig)) {
+        // Override the cas configuration to use for this service
+        $casconfig = $serviceCasConfig;
+    } else {
+        $message = 'Service parameter provided to CAS server is not listed as a legal service: [service] = ' .
+            var_export($_GET['service'], true);
+        Logger::debug('casserver:' . $message);
 
-if (isset($_GET['service']) && !checkServiceURL(sanitize($_GET['service']), $legal_service_urls)) {
-    $message = 'Service parameter provided to CAS server is not listed as a legal service: [service] = '
-        . var_export($_GET['service'], true);
-    SimpleSAML\Logger::debug('casserver:' . $message);
-
-    throw new Exception($message);
+        throw new \Exception($message);
+    }
 }
 
-$as = new SimpleSAML\Auth\Simple($casconfig->getValue('authsource'));
+
+$as = new \SimpleSAML\Auth\Simple($casconfig->getValue('authsource'));
 
 if (array_key_exists('scope', $_GET) && is_string($_GET['scope'])) {
     $scopes = $casconfig->getValue('scopes', array());
