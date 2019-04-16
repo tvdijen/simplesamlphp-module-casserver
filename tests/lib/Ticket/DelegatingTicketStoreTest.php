@@ -56,7 +56,7 @@ class DelegatingTicketStoreTest extends \PHPUnit\Framework\TestCase
     public function testAll()
     {
         $this->ticketstoreConfig['delegateTo'] = 'all';
-        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray($this->ticketstoreConfig));
+        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray(['ticketstore' => $this->ticketstoreConfig]));
 
         $ticket = ['a' => 'b', 'id' => '1'];
         $ticketStore->addTicket($ticket);
@@ -82,7 +82,7 @@ class DelegatingTicketStoreTest extends \PHPUnit\Framework\TestCase
     public function testFirst()
     {
         $this->ticketstoreConfig['delegateTo'] = 'first';
-        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray($this->ticketstoreConfig));
+        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray(['ticketstore' => $this->ticketstoreConfig]));
 
         $ticket = ['a' => 'b', 'id' => '1'];
         $ticketStore->addTicket($ticket);
@@ -102,7 +102,7 @@ class DelegatingTicketStoreTest extends \PHPUnit\Framework\TestCase
     public function testNamed()
     {
         $this->ticketstoreConfig['delegateTo'] = 'name2';
-        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray($this->ticketstoreConfig));
+        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray(['ticketstore' => $this->ticketstoreConfig]));
 
         $ticket = ['a' => 'b', 'id' => '1'];
         $ticketStore->addTicket($ticket);
@@ -124,7 +124,7 @@ class DelegatingTicketStoreTest extends \PHPUnit\Framework\TestCase
      */
     public function testDelegateErrorsIfNoSuccess()
     {
-        $ticketstoreConfig = array(
+        $config = array(
             'delegateTo' => 'all',
             'ticketStores' => [
                 'error' => [
@@ -133,7 +133,7 @@ class DelegatingTicketStoreTest extends \PHPUnit\Framework\TestCase
             ]
         );
 
-        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray($ticketstoreConfig));
+        $ticketStore = new DelegatingTicketStore(Configuration::loadFromArray(['ticketstore' => $config]));
         try {
             $ticketStore->getTicket('abc');
             $this->fail('Exceptione expected');
