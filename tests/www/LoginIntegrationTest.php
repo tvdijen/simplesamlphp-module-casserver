@@ -101,6 +101,34 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * test a valid target URL
+     */
+    public function testValidTargetUrl()
+    {
+        $service_url = 'http://host1.domain:1234/path1';
+        $client = new Client();
+        // Use cookies Jar to store auth session cookies
+        $jar = new CookieJar;
+        // Setup authenticated cookies
+        $this->authenticate($jar);
+        $response = $client->get(
+            self::$LINK_URL,
+            [
+                'query' => ['TARGET' => $service_url],
+                'cookies' => $jar,
+                'allow_redirects' => false, // Disable redirects since the service url can't be redirected to
+            ]
+        );
+        $this->assertEquals(302, $response->getStatusCode());
+
+        $this->assertStringStartsWith(
+            $service_url . '?ticket=ST-',
+            $response->getHeader('Location')[0],
+            'Ticket should be part of the redirect.'
+        );
+    }
+
+    /**
      * Test outputting user info instead of redirecting
      */
     public function testDebugOutput()

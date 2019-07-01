@@ -44,14 +44,16 @@ $redirect = !(isset($_GET['method']) && 'POST' === $_GET['method']);
 $casconfig = SimpleSAML_Configuration::getConfig('module_casserver.php');
 $serviceValidator = new ServiceValidator($casconfig);
 
-if (isset($_GET['service'])) {
-    $serviceCasConfig = $serviceValidator->checkServiceURL(sanitize($_GET['service']));
+$serviceUrl = isset($_GET['service']) ? $_GET['service'] : (isset($_GET['TARGET']) ? $_GET['TARGET'] : null);
+
+if (isset($serviceUrl)) {
+    $serviceCasConfig = $serviceValidator->checkServiceURL(sanitize($serviceUrl));
     if (isset($serviceCasConfig)) {
         // Override the cas configuration to use for this service
         $casconfig = $serviceCasConfig;
     } else {
         $message = 'Service parameter provided to CAS server is not listed as a legal service: [service] = ' .
-            var_export($_GET['service'], true);
+            var_export($serviceUrl, true);
         Logger::debug('casserver:' . $message);
 
         throw new \Exception($message);
@@ -101,6 +103,10 @@ if (!$as->isAuthenticated() || ($forceAuthn && $sessionRenewId != $requestRenewI
 
     if (isset($_REQUEST['service'])) {
         $query['service'] = $_REQUEST['service'];
+    }
+
+    if (isset($_REQUEST['TARGET'])) {
+        $query['TARGET'] = $_REQUEST['TARGET'];
     }
 
     if (isset($_REQUEST['method'])) {
@@ -168,13 +174,13 @@ if (array_key_exists('language', $_GET)) {
     }
 }
 
-if (isset($_GET['service'])) {
+if (isset($serviceUrl)) {
     $attributeExtractor = new \sspmod_casserver_Cas_AttributeExtractor();
     $mappedAttributes = $attributeExtractor->extractUserAndAttributes($as->getAttributes(), $casconfig);
 
 
     $serviceTicket = $ticketFactory->createServiceTicket(array(
-        'service' => $_GET['service'],
+        'service' => $serviceUrl,
         'forceAuthn' => $forceAuthn,
         'userName' => $mappedAttributes['user'],
         'attributes' => $mappedAttributes['attributes'],
@@ -185,7 +191,7 @@ if (isset($_GET['service'])) {
     $ticketStore->addTicket($serviceTicket);
     try {
         $msgState = [
-            'service' => $_GET['service'],
+            'service' => $serviceUrl,
             'host' => $_SERVER['SERVER_NAME'],
             'ip' =>  $_SERVER['REMOTE_ADDR'],
             'user' => $mappedAttributes['user'],
@@ -209,10 +215,10 @@ if (isset($_GET['service'])) {
         ob_end_clean();
         echo '<pre>' . htmlspecialchars($casResponse) . '</pre>';
     } elseif ($redirect) {
-        SimpleSAML\Utils\HTTP::redirectTrustedURL(SimpleSAML\Utils\HTTP::addURLParameters($_GET['service'],
+        SimpleSAML\Utils\HTTP::redirectTrustedURL(SimpleSAML\Utils\HTTP::addURLParameters($serviceUrl,
             $parameters));
     } else {
-        SimpleSAML\Utils\HTTP::submitPOSTData($_GET['service'], $parameters);
+        SimpleSAML\Utils\HTTP::submitPOSTData($serviceUrl, $parameters);
     }
 } else {
     SimpleSAML\Utils\HTTP::redirectTrustedURL(
