@@ -39,8 +39,9 @@ $protocolClass = \SimpleSAML\Module::resolveClass('casserver:Cas20', 'Cas_Protoc
 /** @var Cas20 $protocol */
 /** @psalm-suppress InvalidStringClass */
 $protocol = new $protocolClass($casconfig);
+$serviceUrl = isset($_GET['service']) ? $_GET['service'] : (isset($_GET['TARGET']) ? $_GET['TARGET'] : null);
 
-if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
+if (isset($serviceUrl) && array_key_exists('ticket', $_GET)) {
     $forceAuthn = isset($_GET['renew']) && $_GET['renew'];
 
     try {
@@ -65,7 +66,7 @@ if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
             $attributes = $serviceTicket['attributes'];
 
             if (!$ticketFactory->isExpired($serviceTicket) &&
-                sanitize($serviceTicket['service']) == sanitize($_GET['service']) &&
+                sanitize($serviceTicket['service']) == sanitize($serviceUrl) &&
                 (!$forceAuthn || $serviceTicket['forceAuthn'])
             ) {
 
@@ -83,7 +84,7 @@ if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
                             'userName' => $serviceTicket['userName'],
                             'attributes' => $attributes,
                             'forceAuthn' => false,
-                            'proxies' => array_merge(array($_GET['service']), $serviceTicket['proxies']),
+                            'proxies' => array_merge(array($serviceUrl), $serviceTicket['proxies']),
                             'sessionId' => $serviceTicket['sessionId']
                         ));
                         try {
@@ -99,7 +100,7 @@ if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
                 }
 
                 $msgState = [
-                    'service' => $_GET['service'],
+                    'service' => $serviceUrl,
                     'host' => $_SERVER['SERVER_NAME'],
                     'ip' =>  $_SERVER['REMOTE_ADDR'],
                     'user' => $serviceTicket['userName'],
@@ -116,10 +117,10 @@ if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
 
                     echo $protocol->getValidateFailureResponse('INVALID_TICKET', $message);
                 } else {
-                    if (sanitize($serviceTicket['service']) != sanitize($_GET['service'])) {
+                    if (sanitize($serviceTicket['service']) != sanitize($serviceUrl)) {
                         $message = 'Mismatching service parameters: expected '
                             . var_export($serviceTicket['service'], true)
-                            . ' but was: ' . var_export($_GET['service'], true);
+                            . ' but was: ' . var_export($serviceUrl, true);
 
                         SimpleSAML\Logger::debug('casserver:' . $message);
 
@@ -171,7 +172,7 @@ if (array_key_exists('service', $_GET) && array_key_exists('ticket', $_GET)) {
         echo $protocol->getValidateFailureResponse('INTERNAL_ERROR', $e->getMessage());
     }
 } else {
-    if (!array_key_exists('service', $_GET)) {
+    if (empty($serviceUrl)) {
         $message = 'Missing service parameter: [service]';
 
         SimpleSAML\Logger::debug('casserver:' . $message);

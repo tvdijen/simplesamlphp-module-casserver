@@ -5,6 +5,13 @@ namespace Simplesamlphp\Casserver;
 class AttributeExtractorTest extends \PHPUnit\Framework\TestCase
 {
 
+    public function setup()
+    {
+        \SimpleSAML_Configuration::clearInternalState();
+        putenv('SIMPLESAMLPHP_CONFIG_DIR=' . dirname(__DIR__) . '/config');
+    }
+
+
     /**
      * Confirm behavior of a default configuration
      */
