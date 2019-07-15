@@ -3,7 +3,7 @@
 namespace SimpleSAML\Module\casserver\Cas\Protocol;
 
 
-use SimpleSAML\Configuration;
+use SimpleSAML_Configuration as Configuration;
 use SimpleSAML\XML\Shib13\AuthnResponse;
 
 class SamlValidateResponder

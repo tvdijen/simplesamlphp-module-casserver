@@ -6,7 +6,7 @@ namespace Simplesamlphp\Casserver;
 use SimpleSAML\Module\casserver\Cas\Protocol\SamlValidateResponder;
 use SimpleXMLElement;
 
-class SamlValidateTest extends \PHPUnit_Framework_TestCase
+class SamlValidateTest extends \PHPUnit\Framework\TestCase
 {
 
     public function testSamlValidatXmlGeneration() {
