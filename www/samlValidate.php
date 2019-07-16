@@ -3,6 +3,7 @@
 
 use SAML2\DOMDocumentFactory;
 use SAML2\Utils;
+use SimpleSAML\Logger;
 use SimpleSAML\Module\casserver\Cas\Protocol\SamlValidateResponder;
 
 $target = $_GET['TARGET'];
@@ -18,14 +19,16 @@ if (empty($postBody)) {
 //$results = Utils::xpQuery($xml, '/soap-env:Envelope/soap-env:Body/*[1]');
 //$request = $results->saveXml();
 $matches = [];
-preg_match('|AssertionArtifact>(.*)<AssertionArtifact', $postBody, $matches);
+preg_match('@AssertionArtifact>(.*)</samlp:AssertionArtifact@', $postBody, $matches);
 if (count($matches) != 2 || empty($matches[1])) {
     throw new \Exception('Missing ticketId in AssertionArtifact');
 }
 
 $ticketId = $matches[1];
+Logger::debug("samlvalidate: Checking ticket $ticketId");
+$casconfig = SimpleSAML_Configuration::getConfig('module_casserver.php');
 
-$ticketValidator = new \SimpleSAML\Module\casserver\Cas\TicketValidator();
+$ticketValidator = new \SimpleSAML\Module\casserver\Cas\TicketValidator($casconfig);
 
 $ticket = $ticketValidator->validateAndDeleteTicket($ticketId, $target);
 if (!is_array($ticket) || empty($matches)) {
