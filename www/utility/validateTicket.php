@@ -40,8 +40,8 @@ $protocolClass = \SimpleSAML\Module::resolveClass('casserver:Cas20', 'Cas_Protoc
 /** @psalm-suppress InvalidStringClass */
 $protocol = new $protocolClass($casconfig);
 $serviceUrl = isset($_GET['service']) ? $_GET['service'] : (isset($_GET['TARGET']) ? $_GET['TARGET'] : null);
-
-if (isset($serviceUrl) && array_key_exists('ticket', $_GET)) {
+$ticket = array_key_exists('ticket', $_GET) ? $_GET['ticket'] : null;
+if (!empty($serviceUrl) && !empty($ticket)) {
     $forceAuthn = isset($_GET['renew']) && $_GET['renew'];
 
     try {
@@ -56,12 +56,12 @@ if (isset($serviceUrl) && array_key_exists('ticket', $_GET)) {
         /** @psalm-suppress InvalidStringClass */
         $ticketFactory = new $ticketFactoryClass($casconfig);
 
-        $serviceTicket = $ticketStore->getTicket($_GET['ticket']);
+        $serviceTicket = $ticketStore->getTicket($ticket);
 
         if (!is_null($serviceTicket) && ($ticketFactory->isServiceTicket($serviceTicket) ||
                 ($ticketFactory->isProxyTicket($serviceTicket) && $method == 'proxyValidate'))
         ) {
-            $ticketStore->deleteTicket($_GET['ticket']);
+            $ticketStore->deleteTicket($ticket);
 
             $attributes = $serviceTicket['attributes'];
 
@@ -111,7 +111,7 @@ if (isset($serviceUrl) && array_key_exists('ticket', $_GET)) {
                 echo $protocol->getValidateSuccessResponse($serviceTicket['userName']);
             } else {
                 if ($ticketFactory->isExpired($serviceTicket)) {
-                    $message = 'Ticket ' . var_export($_GET['ticket'], true) . ' has expired';
+                    $message = 'Ticket ' . var_export($ticket, true) . ' has expired';
 
                     SimpleSAML\Logger::debug('casserver:' . $message);
 
@@ -142,7 +142,7 @@ if (isset($serviceUrl) && array_key_exists('ticket', $_GET)) {
             }
         } else {
             if (is_null($serviceTicket)) {
-                $message = 'Ticket ' . var_export($_GET['ticket'], true) . ' not recognized';
+                $message = 'Ticket ' . var_export($ticket, true) . ' not recognized';
 
                 SimpleSAML\Logger::debug('casserver:' . $message);
 
