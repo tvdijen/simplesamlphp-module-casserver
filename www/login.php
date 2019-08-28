@@ -224,8 +224,15 @@ if (isset($serviceUrl)) {
             echo '<pre>' . htmlspecialchars($casResponse) . '</pre>';
         }
     } elseif ($redirect) {
-        SimpleSAML\Utils\HTTP::redirectTrustedURL(SimpleSAML\Utils\HTTP::addURLParameters($serviceUrl,
-            $parameters));
+        if ($casconfig->getBoolean('noReencode', false)) {
+            // Some client encode query params wrong, and calling HTTP::addURLParameters
+            // will reencode them resulting in service mismatches
+            $extraParams = http_build_query($parameters);
+            $redirectUrl = $serviceUrl . (strpos('?', $serviceUrl) === false ? '?' : '&') . $extraParams;
+            HTTP::redirectTrustedURL($redirectUrl);
+        } else {
+            HTTP::redirectTrustedURL(HTTP::addURLParameters($serviceUrl, $parameters));
+        }
     } else {
         SimpleSAML\Utils\HTTP::submitPOSTData($serviceUrl, $parameters);
     }

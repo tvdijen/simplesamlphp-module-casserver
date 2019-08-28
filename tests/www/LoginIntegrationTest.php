@@ -129,6 +129,46 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Some clients don't correctly encode query parameters that are part their service
+     * urls or encode a space in a different way then SSP will in a redirect. This workaround
+     * is to allow those clients to work
+     * @dataProvider buggyClientProvider
+     * @return void
+     */
+    public function testBuggyClientBadUrlEncodingWorkAround($service_url)
+    {
+        $client = new Client();
+        // Use cookies Jar to store auth session cookies
+        $jar = new CookieJar;
+        // Setup authenticated cookies
+        $this->authenticate($jar);
+        $response = $client->get(
+            self::$LINK_URL,
+            [
+                'query' => ['TARGET' => $service_url],
+                'cookies' => $jar,
+                'allow_redirects' => false, // Disable redirects since the service url can't be redirected to
+            ]
+        );
+        $this->assertEquals(302, $response->getStatusCode());
+
+        $this->assertStringStartsWith(
+            $service_url . '?ticket=ST-',
+            $response->getHeader('Location')[0],
+            'Ticket should be part of the redirect.'
+        );
+    }
+
+    public function buggyClientProvider(): array
+    {
+        return [
+            ['https://buggy.edu/kc/portal.do?solo&ct=Search%20Prot&curl=https://kc.edu/kc/IRB.do?se=1875*&runSearch=1'],
+            ['https://buggy.edu/kc'],
+        ];
+    }
+
+
+    /**
      * Test outputting user info instead of redirecting
      */
     public function testDebugOutput()

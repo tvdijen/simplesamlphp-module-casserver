@@ -21,6 +21,10 @@ $config = array(
         '|https://override.example.com/|' => [
             'attrname' => 'uid',
             'attributes_to_transfer' => ['cn'],
+        ],
+        'https://buggy.edu' => [
+            // Don't use php or SSP's built in methods for constructing queries.
+            'noReencode' => true
         ]
     ],
 
