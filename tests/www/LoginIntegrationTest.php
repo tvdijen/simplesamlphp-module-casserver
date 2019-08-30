@@ -135,7 +135,7 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
      * @dataProvider buggyClientProvider
      * @return void
      */
-    public function testBuggyClientBadUrlEncodingWorkAround($service_url)
+    public function testBuggyClientBadUrlEncodingWorkAround($service_url, $expectedStartsWith, $expectedEndsWith)
     {
         $client = new Client();
         // Use cookies Jar to store auth session cookies
@@ -153,17 +153,31 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(302, $response->getStatusCode());
 
         $this->assertStringStartsWith(
-            $service_url . '?ticket=ST-',
+            $expectedStartsWith,
             $response->getHeader('Location')[0],
             'Ticket should be part of the redirect.'
         );
+        if (!empty($expectedEndsWith)) {
+            $this->assertStringEndsWith(
+                $expectedEndsWith,
+                $response->getHeader('Location')[0],
+                'url fragments happen after the query params'
+            );
+        }
     }
 
     public function buggyClientProvider(): array
     {
+        $urlWithQuery = 'https://buggy.edu/kc/portal.do?solo&ct=Search%20Prot&curl=https://kc.edu/kc/IRB.do?se=1875*&runSearch=1';
+        $urlNoQuery = 'https://buggy.edu/kc';
+        $urlMultiKeys = 'https://buggy.edu/kc?a=val1&a=val2';
         return [
-            ['https://buggy.edu/kc/portal.do?solo&ct=Search%20Prot&curl=https://kc.edu/kc/IRB.do?se=1875*&runSearch=1'],
-            ['https://buggy.edu/kc'],
+            [$urlWithQuery, $urlWithQuery . '&ticket=ST-', ''],
+            [$urlWithQuery . '#fragment', $urlWithQuery . '&ticket=ST-', '#fragment'],
+            [$urlMultiKeys, $urlMultiKeys . '&ticket=ST-', ''],
+            [$urlMultiKeys . '#fragment', $urlMultiKeys . '&ticket=ST-', '#fragment'],
+            [$urlNoQuery, $urlNoQuery. '?ticket=ST-', ''],
+            [$urlNoQuery . '#fragment', $urlNoQuery . '?ticket=ST-', '#fragment'],
         ];
     }
 
