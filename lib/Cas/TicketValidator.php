@@ -54,21 +54,36 @@ class TicketValidator
         $this->ticketStore->deleteTicket($ticket);
 
         //TODO: check if expired, check if matches service url
-        if (self::sanitize($serviceTicket['service']) !== self::sanitize($service)) {
-            $message = 'Mismatching service parameters: expected '.
-                var_export($serviceTicket['service'], true).
-                ' but was: '.var_export($service, true);
-
-            Logger::debug('casserver:'.$message);
-            throw new BadRequest($message);
+        $mismatchMsg = '';
+        if (!self::doServiceUrlsMatch($serviceTicket['service'], $service, $mismatchMsg)) {
+            Logger::debug('casserver:'. $mismatchMsg);
+            throw new BadRequest($mismatchMsg);
         }
 
         return $serviceTicket;
 
     }
 
+    public static function doServiceUrlsMatch($ticketUrl, $validateUrl, &$message ='') {
+        $sanTicketUrl = self::sanitize($ticketUrl);
+        $sanValidateUrl = self::sanitize($validateUrl);
+        if ($sanTicketUrl === $sanValidateUrl) {
+            return true;
+        }
+        // determine location of mismatch, since sometimes with encoding issues its hard to tell
+        // https://stackoverflow.com/a/7475502/54396
+        $position = strspn($sanTicketUrl ^ $sanValidateUrl, "\0");
+        $message = 'Mismatching service parameters: expected '.
+            var_export($sanTicketUrl, true).
+            ' but was: '.var_export($sanValidateUrl, true) .
+        " First difference at position $position '{$sanTicketUrl[$position]}' vs '{$sanValidateUrl[$position]}'"
+        ;
+        return false;
+    }
+
     public static function sanitize($parameter)
     {
-        return preg_replace('/;jsessionid=.*[^?].*$/', '', preg_replace('/;jsessionid=.*[?]/', '?', urldecode($parameter)));
+        // Make regexes non-greedy incase service url includes more than one ?
+        return preg_replace('/;jsessionid=.*[^?].*$/U', '', preg_replace('/;jsessionid=.*[?]/U', '?', urldecode($parameter)));
     }
 }
