@@ -101,6 +101,34 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Test changing the ticket name
+     */
+    public function testValidTicketNameOverride()
+    {
+        $service_url = 'http://changeTicketParam/abc';
+        $client = new Client();
+        // Use cookies Jar to store auth session cookies
+        $jar = new CookieJar;
+        // Setup authenticated cookies
+        $this->authenticate($jar);
+        $response = $client->get(
+            self::$LINK_URL,
+            [
+                'query' => ['TARGET' => $service_url],
+                'cookies' => $jar,
+                'allow_redirects' => false, // Disable redirects since the service url can't be redirected to
+            ]
+        );
+        $this->assertEquals(302, $response->getStatusCode());
+
+        $this->assertStringStartsWith(
+            $service_url . '?myTicket=ST-',
+            $response->getHeader('Location')[0],
+            'Ticket should be part of the redirect.'
+        );
+    }
+
+    /**
      * test a valid target URL
      */
     public function testValidTargetUrl()
@@ -122,7 +150,7 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(302, $response->getStatusCode());
 
         $this->assertStringStartsWith(
-            $service_url . '?ticket=ST-',
+            $service_url . '?SAMLart=ST-',
             $response->getHeader('Location')[0],
             'Ticket should be part of the redirect.'
         );
@@ -172,12 +200,12 @@ class LoginIntegrationTest extends \PHPUnit\Framework\TestCase
         $urlNoQuery = 'https://buggy.edu/kc';
         $urlMultiKeys = 'https://buggy.edu/kc?a=val1&a=val2';
         return [
-            [$urlWithQuery, $urlWithQuery . '&ticket=ST-', ''],
-            [$urlWithQuery . '#fragment', $urlWithQuery . '&ticket=ST-', '#fragment'],
-            [$urlMultiKeys, $urlMultiKeys . '&ticket=ST-', ''],
-            [$urlMultiKeys . '#fragment', $urlMultiKeys . '&ticket=ST-', '#fragment'],
-            [$urlNoQuery, $urlNoQuery. '?ticket=ST-', ''],
-            [$urlNoQuery . '#fragment', $urlNoQuery . '?ticket=ST-', '#fragment'],
+            [$urlWithQuery, $urlWithQuery . '&SAMLart=ST-', ''],
+            [$urlWithQuery . '#fragment', $urlWithQuery . '&SAMLart=ST-', '#fragment'],
+            [$urlMultiKeys, $urlMultiKeys . '&SAMLart=ST-', ''],
+            [$urlMultiKeys . '#fragment', $urlMultiKeys . '&SAMLart=ST-', '#fragment'],
+            [$urlNoQuery, $urlNoQuery. '?SAMLart=ST-', ''],
+            [$urlNoQuery . '#fragment', $urlNoQuery . '?SAMLart=ST-', '#fragment'],
         ];
     }
 

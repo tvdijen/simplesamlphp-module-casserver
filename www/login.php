@@ -175,6 +175,9 @@ if (array_key_exists('language', $_GET)) {
     }
 }
 
+$defaultTicketName = isset($_GET['service']) ? 'ticket' : 'SAMLart';
+$ticketName = $casconfig->getValue('ticketName', $defaultTicketName);
+
 if (isset($serviceUrl)) {
     $attributeExtractor = new \sspmod_casserver_Cas_AttributeExtractor();
     $mappedAttributes = $attributeExtractor->extractUserAndAttributes($as->getAttributes(), $casconfig);
@@ -203,7 +206,7 @@ if (isset($serviceUrl)) {
     } catch (Exception $e) {
         //eat it so we don't interupt the flow
     }
-    $parameters['ticket'] = $serviceTicket['id'];
+    $parameters[$ticketName] = $serviceTicket['id'];
 
     $validDebugModes = ['true', 'samlValidate'];
     if (array_key_exists('debugMode',$_GET) && in_array($_GET['debugMode'], $validDebugModes)) {
@@ -215,7 +218,7 @@ if (isset($serviceUrl)) {
         } else {
             $method = 'serviceValidate';
             // Fake some options for validateTicket
-            $_GET['ticket'] = $serviceTicket['id'];
+            $_GET[$ticketName] = $serviceTicket['id'];
             // We want to capture the output from echo used in validateTicket
             ob_start();
             require_once 'utility/validateTicket.php';
